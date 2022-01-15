@@ -96,6 +96,28 @@ void clear_screen()
 	#endif
 }
 
+std::vector<int> read_player_stats(HANDLE hProcess, std::vector<uintptr_t> playerAddrTable) {
+	std::vector<int> result = { };
+	int playerStat = NULL;
+	for (int i = 0; i < playerAddrTable.size(); i++) {
+		ReadProcessMemory(hProcess, (BYTE*)playerAddrTable[i], &playerStat, sizeof(playerStat), nullptr);
+		result.push_back(playerStat);
+	}
+	return result;
+}
+
+void write_player_stats(HANDLE hProcess, std::vector<uintptr_t> playerAddrTable, std::vector<int> targetStats) {
+	for (int i = 0; i < playerAddrTable.size(); i++) {
+		WriteProcessMemory(hProcess, (BYTE*)playerAddrTable[i], &targetStats[i], sizeof(targetStats[i]), nullptr);
+	}
+}
+
+std::vector<uintptr_t> create_player_structure(uintptr_t basePlayerAddr) {
+	// Creates vector of player addr for processing - { HP, base health, armor }
+	std::vector<uintptr_t> playerStruct = { basePlayerAddr + 0x8, basePlayerAddr, basePlayerAddr + 0x4 };
+	return playerStruct;
+}
+
 void print_process_details(const wchar_t* target_process, DWORD procId, uintptr_t modBaseAddr) 
 {
 	// Print Process Details

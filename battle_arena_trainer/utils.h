@@ -23,6 +23,9 @@ void show_menu();
 void print_player_health(uintptr_t hp, uintptr_t health, uintptr_t armor);
 void print_enemy_health(uintptr_t hp, uintptr_t health, uintptr_t armor);
 std::vector<int> get_user_inputs();
+std::vector<int> read_player_stats(HANDLE hProcess, std::vector<uintptr_t> playerAddrTable);
+std::vector<uintptr_t> create_player_structure(uintptr_t basePlayerAddr);
+void write_player_stats(HANDLE hProcess, std::vector<uintptr_t> playerAddrTable, std::vector<int> targetStats);
 
 #endif
 

@@ -6,8 +6,8 @@ int main()
 	std::string welcome = "Battle Arena Trainer!";
 	welcome_banner(welcome);
 	const wchar_t * target_process = L"battle_arena.exe";
-	int playerHealth, playerArmor, playerHp;
-	int enemyHealth, enemyArmor, enemyHp;
+	int playerHealth = NULL, playerArmor = NULL, playerHp = NULL;
+	int enemyHealth = NULL, enemyArmor = NULL, enemyHp = NULL;
 
 	DWORD procId = GetProcessId(target_process);
 	MODULEENTRY32 procMod = GetModule(procId, target_process);
@@ -42,7 +42,7 @@ int main()
 	const char* playerMask = "xxx????xxx????";
 	uintptr_t begin = (uintptr_t)procMod.modBaseAddr;
 	uintptr_t end = begin + procMod.modBaseSize;
-
+	
 	// Pattern Base Addr
 	char* patternBaseAddr = PatternScanModule(hProcess, begin, end, playerPattern, playerMask);
 	// Add offset for mask bytes [xxx????xxx]???? -> 0xA
@@ -54,25 +54,22 @@ int main()
 
 	// Player Addr
 	std::uintptr_t calculatedPlayerAddr = nextAddr + offsetValue;
-	std::uintptr_t playerArmorAddr = calculatedPlayerAddr + 0x4;
-	std::uintptr_t playerHpAddr = playerArmorAddr + 0x4;
 	std::cout << "\n[*]Calculated Player Address: " << "0x" << std::hex << calculatedPlayerAddr << std::endl;
-	ReadProcessMemory(hProcess, (BYTE*)calculatedPlayerAddr, &playerHealth, sizeof(playerHealth), nullptr);
-	ReadProcessMemory(hProcess, (BYTE*)playerArmorAddr, &playerArmor, sizeof(playerArmor), nullptr);
-	ReadProcessMemory(hProcess, (BYTE*)playerHpAddr, &playerHp, sizeof(playerHp), nullptr);
-	print_player_health(playerHp, playerHealth, playerArmor);
+	std::vector<uintptr_t> playerStruct = create_player_structure(calculatedPlayerAddr);
+
+	// Read Player stats
+	std::vector<int> player_stats = read_player_stats(hProcess, playerStruct);
+	print_player_health(player_stats[0], player_stats[1], player_stats[2]);
 
 	// Enemy Addr
 	std::uintptr_t calculatedEnemyAddr = calculatedPlayerAddr + 0x10;
-	std::uintptr_t enemyArmorAddr = calculatedEnemyAddr + 0x4;
-	std::uintptr_t enemyHpAddr = enemyArmorAddr + 0x4;
-	std::cout << "\n[*]Calculated Enemy Address: " << "0x" << std::hex << calculatedEnemyAddr << std::endl;
-	ReadProcessMemory(hProcess, (BYTE*)calculatedEnemyAddr, &enemyHealth, sizeof(enemyHealth), nullptr);
-	ReadProcessMemory(hProcess, (BYTE*)enemyArmorAddr, &enemyArmor, sizeof(enemyArmor), nullptr);
-	ReadProcessMemory(hProcess, (BYTE*)enemyHpAddr, &enemyHp, sizeof(enemyHp), nullptr);
-	print_enemy_health(enemyHp, enemyHealth, enemyArmor);
+	std::vector<uintptr_t> enemyStruct = create_player_structure(calculatedEnemyAddr);
+	std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
-	int user_opt;
+	std::cout << "\n[*]Calculated Enemy Address: " << "0x" << std::hex << calculatedEnemyAddr << std::endl;
+	print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
+
+	int user_opt = NULL;
 	// menu loop
 	do {
 		user_opt = get_user_input();
@@ -83,76 +80,48 @@ int main()
 			print_process_details(target_process, procId, modBaseAddr);
 
 			// Read player memory
-			ReadProcessMemory(hProcess, (BYTE*)calculatedPlayerAddr, &playerHealth, sizeof(playerHealth), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)playerArmorAddr, &playerArmor, sizeof(playerArmor), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)playerHpAddr, &playerHp, sizeof(playerHp), nullptr);
+			std::vector<int> player_stats = read_player_stats(hProcess, playerStruct);
 
 			// Read enemy memory
-			ReadProcessMemory(hProcess, (BYTE*)calculatedEnemyAddr, &enemyHealth, sizeof(enemyHealth), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)enemyArmorAddr, &enemyArmor, sizeof(enemyArmor), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)enemyHpAddr, &enemyHp, sizeof(enemyHp), nullptr);
+			std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
 			std::cout << "\nGame Details: " << std::endl;
-			print_player_health(playerHp, playerHealth, playerArmor);
-			print_enemy_health(enemyHp, enemyHealth, enemyArmor);
+			print_player_health(player_stats[0], player_stats[1], player_stats[2]);
+			print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
 
 			break;
 		}
 		case 1: {
 			clear_screen();
 			std::vector<int> user_inputs = get_user_inputs();
-			// Boosting Health
-			int targetHealth = user_inputs[1];
-			WriteProcessMemory(hProcess, (BYTE*)calculatedPlayerAddr, &targetHealth, sizeof(targetHealth), nullptr);
-			// Boosting Armor
-			int targetArmor = user_inputs[2];
-			WriteProcessMemory(hProcess, (BYTE*)playerArmorAddr, &targetArmor, sizeof(targetArmor), nullptr);
-			// Boosting Total HP
-			int targetHp = user_inputs[0];
-			WriteProcessMemory(hProcess, (BYTE*)playerHpAddr, &targetHp, sizeof(targetHp), nullptr);
+			write_player_stats(hProcess, playerStruct, user_inputs);
 
 			// Read player memory
-			ReadProcessMemory(hProcess, (BYTE*)calculatedPlayerAddr, &playerHealth, sizeof(playerHealth), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)playerArmorAddr, &playerArmor, sizeof(playerArmor), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)playerHpAddr, &playerHp, sizeof(playerHp), nullptr);
+			std::vector<int> player_stats = read_player_stats(hProcess, playerStruct);
 
 			// Read enemy memory
-			ReadProcessMemory(hProcess, (BYTE*)calculatedEnemyAddr, &enemyHealth, sizeof(enemyHealth), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)enemyArmorAddr, &enemyArmor, sizeof(enemyArmor), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)enemyHpAddr, &enemyHp, sizeof(enemyHp), nullptr);
+			std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
 			std::cout << "\nCurrent Game Stats: " << std::endl;
-			print_player_health(playerHp, playerHealth, playerArmor);
-			print_enemy_health(enemyHp, enemyHealth, enemyArmor);
+			print_player_health(player_stats[0], player_stats[1], player_stats[2]);
+			print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
 
 			break;
 		}
 		case 2: {
 			clear_screen();
 			std::vector<int> user_inputs = get_user_inputs();
-			// Changing Health
-			int targetHealth = user_inputs[1];
-			WriteProcessMemory(hProcess, (BYTE*)calculatedEnemyAddr, &targetHealth, sizeof(targetHealth), nullptr);
-			// Changing Armor
-			int targetArmor = user_inputs[2];
-			WriteProcessMemory(hProcess, (BYTE*)enemyArmorAddr, &targetArmor, sizeof(targetArmor), nullptr);
-			// Changing Total HP
-			int targetHp = user_inputs[0];
-			WriteProcessMemory(hProcess, (BYTE*)enemyHpAddr, &targetHp, sizeof(targetHp), nullptr);
+			write_player_stats(hProcess, enemyStruct, user_inputs);
 
 			// Read player memory
-			ReadProcessMemory(hProcess, (BYTE*)calculatedPlayerAddr, &playerHealth, sizeof(playerHealth), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)playerArmorAddr, &playerArmor, sizeof(playerArmor), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)playerHpAddr, &playerHp, sizeof(playerHp), nullptr);
+			std::vector<int> player_stats = read_player_stats(hProcess, playerStruct);
 
 			// Read enemy memory
-			ReadProcessMemory(hProcess, (BYTE*)calculatedEnemyAddr, &enemyHealth, sizeof(enemyHealth), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)enemyArmorAddr, &enemyArmor, sizeof(enemyArmor), nullptr);
-			ReadProcessMemory(hProcess, (BYTE*)enemyHpAddr, &enemyHp, sizeof(enemyHp), nullptr);
+			std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
 			std::cout << "\nCurrent Game Stats: " << std::endl;
-			print_player_health(playerHp, playerHealth, playerArmor);
-			print_enemy_health(enemyHp, enemyHealth, enemyArmor);
+			print_player_health(player_stats[0], player_stats[1], player_stats[2]);
+			print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
 
 			break;
 		}
