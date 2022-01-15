@@ -6,8 +6,6 @@ int main()
 	std::string welcome = "Battle Arena Trainer!";
 	welcome_banner(welcome);
 	const wchar_t * target_process = L"battle_arena.exe";
-	int playerHealth = NULL, playerArmor = NULL, playerHp = NULL;
-	int enemyHealth = NULL, enemyArmor = NULL, enemyHp = NULL;
 
 	DWORD procId = GetProcessId(target_process);
 	MODULEENTRY32 procMod = GetModule(procId, target_process);
@@ -59,7 +57,7 @@ int main()
 
 	// Read Player stats
 	std::vector<int> player_stats = read_player_stats(hProcess, playerStruct);
-	print_player_health(player_stats[0], player_stats[1], player_stats[2]);
+	print_player_health(player_stats);
 
 	// Enemy Addr
 	std::uintptr_t calculatedEnemyAddr = calculatedPlayerAddr + 0x10;
@@ -67,7 +65,7 @@ int main()
 	std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
 	std::cout << "\n[*]Calculated Enemy Address: " << "0x" << std::hex << calculatedEnemyAddr << std::endl;
-	print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
+	print_enemy_health(enemy_stats);
 
 	int user_opt = NULL;
 	// menu loop
@@ -86,8 +84,8 @@ int main()
 			std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
 			std::cout << "\nGame Details: " << std::endl;
-			print_player_health(player_stats[0], player_stats[1], player_stats[2]);
-			print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
+			print_player_health(player_stats);
+			print_enemy_health(enemy_stats);
 
 			break;
 		}
@@ -103,8 +101,8 @@ int main()
 			std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
 			std::cout << "\nCurrent Game Stats: " << std::endl;
-			print_player_health(player_stats[0], player_stats[1], player_stats[2]);
-			print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
+			print_player_health(player_stats);
+			print_enemy_health(enemy_stats);
 
 			break;
 		}
@@ -120,8 +118,8 @@ int main()
 			std::vector<int> enemy_stats = read_player_stats(hProcess, enemyStruct);
 
 			std::cout << "\nCurrent Game Stats: " << std::endl;
-			print_player_health(player_stats[0], player_stats[1], player_stats[2]);
-			print_enemy_health(enemy_stats[0], enemy_stats[1], enemy_stats[2]);
+			print_player_health(player_stats);
+			print_enemy_health(enemy_stats);
 
 			break;
 		}

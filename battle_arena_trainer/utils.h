@@ -20,8 +20,8 @@ void print_process_details(const wchar_t* target_process, DWORD procId, uintptr_
 int get_user_input();
 int get_user_option();
 void show_menu();
-void print_player_health(uintptr_t hp, uintptr_t health, uintptr_t armor);
-void print_enemy_health(uintptr_t hp, uintptr_t health, uintptr_t armor);
+void print_player_health(std::vector<int> playerDetails);
+void print_enemy_health(std::vector<int> playerDetails);
 std::vector<int> get_user_inputs();
 std::vector<int> read_player_stats(HANDLE hProcess, std::vector<uintptr_t> playerAddrTable);
 std::vector<uintptr_t> create_player_structure(uintptr_t basePlayerAddr);

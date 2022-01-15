@@ -174,20 +174,20 @@ int get_user_input()
 	return user_option;
 }
 
-void print_player_health(uintptr_t hp, uintptr_t health, uintptr_t armor) 
+void print_player_health(std::vector<int> playerDetails) 
 {
 	std::cout << "\n- Player Details - " << std::endl;
-	std::cout << "Player Total HP: " << std::dec << hp << std::endl;
-	std::cout << "Player Health: " << std::dec << health << std::endl;
-	std::cout << "Player Armor: " << std::dec << armor << std::endl;   
+	std::cout << "Player Total HP: " << std::dec << playerDetails[0] << std::endl;
+	std::cout << "Player Health: " << std::dec << playerDetails[1] << std::endl;
+	std::cout << "Player Armor: " << std::dec << playerDetails[2] << std::endl;
 }
 
-void print_enemy_health(uintptr_t hp, uintptr_t health, uintptr_t armor)
+void print_enemy_health(std::vector<int> playerDetails)
 {
 	std::cout << "\n- Enemy Details - " << std::endl;
-	std::cout << "Enemy Total HP: " << std::dec << hp << std::endl;
-	std::cout << "Enemy Health: " << std::dec << health << std::endl;
-	std::cout << "Enemy Armor: " << std::dec << armor << std::endl;
+	std::cout << "Enemy Total HP: " << std::dec << playerDetails[0] << std::endl;
+	std::cout << "Enemy Health: " << std::dec << playerDetails[1] << std::endl;
+	std::cout << "Enemy Armor: " << std::dec << playerDetails[2] << std::endl;
 }
 
 std::vector<int> get_user_inputs()
